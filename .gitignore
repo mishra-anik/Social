@@ -1,0 +1,50 @@
+# =======================
+# Node / Backend (server)
+# =======================
+
+# Node dependencies
+server/node_modules/
+
+# Logs
+server/logs/
+server/*.log
+
+# Environment files
+server/.env
+server/.env.local
+server/.env.*.local
+
+# Build / output
+server/dist/
+server/build/
+
+# =======================
+# Frontend (client)
+# =======================
+
+# Node dependencies
+client/node_modules/
+
+# Build / output
+client/build/
+client/dist/
+
+# Environment
+client/.env
+client/.env.local
+client/.env.*.local
+
+# =======================
+# Common / OS / IDE
+# =======================
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.swp
