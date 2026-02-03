@@ -1,146 +1,137 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-
 import { io } from "socket.io-client";
 
-const socket = io("https://social-64gp.onrender.com", {
-	withCredentials: true,
+const socket = io("http://localhost:3000", {
+  withCredentials: true,
 });
 
-const PostCard = ({ post }) => {
-	const [open, setOpen] = useState(false);
-	const [like , setLike] = useState(false)
-	const [data, setData] = useState(post);
-	const [message, setMessage] = useState("");
-	if (data) {
-		post = data;
-	}
-	const handleCommentBox = () => {
-		setOpen(!open);
-	};
-	const handleComment = async (id) => {
-		if (!message.trim()) return;
+const Card = ({ post }) => {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState(post);
+  const [message, setMessage] = useState("");
 
-		try {
-			// log message being sent
-			console.log("sending:", message);
+  useEffect(() => {
+    socket.emit("join-post", data._id);
 
-			await axios.post(
-				`https://social-64gp.onrender.com/comment/${id}`,
-				{ message },
-				{ withCredentials: true },
-			);
+    socket.on("post-updated", (updatedPost) => {
+      if (updatedPost._id === data._id) {
+        setData((prev) => ({
+          ...prev,
+          ...updatedPost,
+        }));
+      }
+    });
 
-			setMessage("");
-		} catch (err) {
-			console.log(err);
-		}
-	};
+    return () => {
+      socket.off("post-updated");
+    };
+  }, []);
 
-	const handleLike = async (id) => {
-		const res = await axios.post(
-			`https://social-64gp.onrender.com/${id}`,
-			{},
+  const handleLike = async (id) => {
+    setData((prev) => ({
+      ...prev,
+      isLike: !prev.isLike,
+      totalLikes: prev.isLike
+        ? prev.totalLikes - 1
+        : prev.totalLikes + 1,
+    }));
 
-			{ withCredentials: true },
-		);
+    await axios.post(
+      `http://localhost:3000/like/${id}`,
+      {},
+      { withCredentials: true }
+    );
+  };
 
-		setLike(!like)
-	
-		console.log(res.data.Updatepost);
-	};
+  const handleComment = async (id) => {
+    if (!message.trim()) return;
 
-	useEffect(()=>{
-			socket.emit("get-posts-id",{postID:data._id});
+    await axios.post(
+      `https://social-64gp.onrender.com/comment/${id}`,
+      { message },
+      { withCredentials: true }
+    );
 
-		socket.on("recived-data-id", (data) => {
-			console.log("Post received:", data);
-			setData(data.post);
-		});
+    setMessage("");
+  };
 
-	} , [like])
-	
+  return (
+    <div style={styles.card}>
+		<h1></h1>
+      {data.text && <div>{data.text}</div>}
 
-	return (
-		<div style={styles.card}>
-			{/* Text */}
-			{data.text && <div style={styles.text}>{data.text}</div>}
+      {data.file && (
+        <img src={data.file} style={styles.image} />
+      )}
 
-			{/* Image */}
-			{data.file && (
-				<div style={styles.imageContainer}>
-					<img src={data.file} alt='post' style={styles.image} />
-				</div>
-			)}
+      <div style={styles.actions}>
+        <button onClick={() => handleLike(data._id)}>
+          {data.isLike ? "❤️" : "🤍"} {data.totalLikes}
+        </button>
+        <button onClick={() => setOpen(!open)}>💬 Comment</button>
+      </div>
 
-			{/* Actions */}
-			<div style={styles.actions}>
-				<button onClick={() => handleLike(data._id)}>
-					{data.isLike ? "❤️ " : "🤍"}
-				</button>
-				<button onClick={handleCommentBox}>💬 Comment</button>
-			</div>
-			{open && (
-				<div>
-					<input
-						type='text'
-						value={message}
-						onChange={(e) => setMessage(e.target.value)}
-						placeholder='comment here'
-						id=''
-					/>
-					<button onClick={() => handleComment(data._id)}>
-						submit
-					</button>
-				</div>
-			)}
-		</div>
-	);
+      {open && (
+        <>
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="comment..."
+          />
+          <button onClick={() => handleComment(data._id)}>
+            Send
+          </button>
+        </>
+      )}
+    </div>
+  );
 };
-
 const styles = {
-	card: {
-		breakInside: "avoid", // 👈 VERY IMPORTANT
-		marginBottom: "16px",
-		backgroundColor: "#fff",
-		borderRadius: "8px",
-		padding: "12px",
-		border: "1px solid #ddd",
-	},
+  card: {
+    padding: 12,
+    // border: "1px solid #d21818",
+    borderRadius: 8,
+    marginBottom: 16,
+backgroundColor: "#e4e1e1f8", // 🌑 dark gray
+    color: "#070202a3",           // light text for contrast
 
-	text: {
-		fontSize: "14px",
-		marginBottom: "8px",
-	},
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)", // ✨ soft shadow
+    display: "flex",
+    flexDirection: "column",
+    // justifyContent: "center",
+    // alignItems: "center",
 
-	imageContainer: {
-		width: "100%",
-		maxHeight: "20rem", // 👈 image limited, card not
-		overflow: "hidden",
-		borderRadius: "6px",
-		backgroundColor: "#f0f0f0",
-	},
+    gap: "1.5rem", // 🔥 THIS adds spacing between elements
+  },
 
-	image: {
-		width: "100%",
-		height: "100%",
-		objectFit: "contain", // use "cover" if you want crop
-	},
+  image: {
+    width: "100%",
+    height: "20rem",
+    objectFit: "contain",
+  },
 
-	actions: {
-		display: "flex",
-		justifyContent: "space-between",
-		marginTop: "12px",
-	},
+  actions: {
+    display: "flex",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 10,
+  },
+  button: {
+    flex: 1,
+    padding: "10px 14px",
+    borderRadius: 6,
+    border: "none",
+    cursor: "pointer",
 
-	button: {
-		padding: "8px 14px",
-		borderRadius: "6px",
-		border: "none",
-		backgroundColor: "#4CAF50",
-		color: "#fff",
-		cursor: "pointer",
-	},
+    backgroundColor: "#2d7ff9", // 🔵 soft blue
+    color: "#ffffff",
+    fontWeight: 500,
+
+    transition: "background-color 0.2s ease, transform 0.1s ease",
+  },
 };
 
-export default PostCard;
+
+
+export default Card;

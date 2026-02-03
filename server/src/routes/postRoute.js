@@ -3,6 +3,7 @@ const multer = require("multer");
 const Post = require("../models/post.model.js");
 const User = require("../models/user.model.js");
 const jwt = require("jsonwebtoken");
+const { getIO } = require("../service/socket.service.js");
 
 const ImageKit = require("imagekit");
 
@@ -129,46 +130,48 @@ postRoute.post("/comment/:id", async (req, res) => {
 });
 
 postRoute.post("/like/:id", async (req, res) => {
-	try {
-		const postId = req.params.id;
-		console.log(req.params.id);
-		console.log(postId);
-		const Authtoken = req.cookies.Authtoken;
-		// console.log(token)
-
-		if (!Authtoken) return res.status(401).json({ message: "Unauthorized" });
-
-		const decoded = jwt.verify(Authtoken, process.env.Jwt_Secret);
-		if (!decoded) {
-			return res.status(401).json({ message: "Invalid token" });
-		}
-
-		const userId = decoded.userId;
-		console.log(userId);
-
-		const post = await Post.findById(postId);
-		if (!post) return res.status(404).json({ message: "Post not found" });
-
-		// Toggle like/unlike
-		const alreadyLiked = post.likes.some(
-			(like) => like.userId.toString() === userId,
-		);
-		const Updatepost = await Post.findByIdAndUpdate(
-			postId,
-			alreadyLiked
-				? { $pull: { likes: { userId } } }
-				: { $addToSet: { likes: { userId } } },
-			{ new: true },
-		);
-
-		// Send response only once
-		return res.status(200).json({ Updatepost });
-	} catch (err) {
-		console.error(err);
-		if (!res.headersSent) {
-			res.status(500).json({ message: "Server error" });
-		}
+const Authtoken = req.cookies.Authtoken;
+	console.log(Authtoken);
+	const decoded = jwt.verify(Authtoken, process.env.Jwt_Secret);
+	if (!decoded) {
+		return res.status(401).json({ message: "Unauthorized" });
 	}
+  try {
+    const postId = req.params.id;
+    const userId = decoded.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const alreadyLiked = post.likes.some(
+      (l) => l.userId.toString() === userId.toString()
+    );
+
+    if (alreadyLiked) {
+      post.likes = post.likes.filter(
+        (l) => l.userId.toString() !== userId.toString()
+      );
+    } else {
+      post.likes.push({ userId });
+    }
+
+    await post.save();
+
+    const io = getIO();
+
+    io.to(postId).emit("post-updated", {
+      _id: post._id,
+      likes: post.likes,
+      totalLikes: post.likes.length,
+      isLike: !alreadyLiked,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+
+
 });
 
 module.exports = postRoute;

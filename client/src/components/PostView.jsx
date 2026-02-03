@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect } from "react";
 import { useState } from "react";
 import Card from "./Card";
@@ -18,6 +17,7 @@ const PostView = () => {
 			console.log("Posts received:", data);
 			setPost(data.posts);
 		});
+		// socket.emit("disconnect");
 	}, []);
 
 	return (

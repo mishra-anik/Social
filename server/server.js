@@ -3,7 +3,7 @@ const app = require("./src/app");
 const connectDB = require("./src/db/db");
 const http = require("http")
 const httpServer = http.createServer(app);
-const setUpSocket = require("./src/service/socket.service")
+const {setUpSocket }= require("./src/service/socket.service")
 
 connectDB();
 setUpSocket(httpServer)
