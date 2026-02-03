@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/auth/me",
+          "https://social-64gp.onrender.com/auth/me",
           { withCredentials: true }
         );
         setUser(response.data.user);

@@ -5,7 +5,7 @@ import Card from "./Card";
 import "../css/Post.css";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000", {
+const socket = io("https://social-64gp.onrender.com", {
 	withCredentials: true,
 });
 const PostView = () => {

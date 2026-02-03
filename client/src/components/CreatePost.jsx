@@ -22,7 +22,7 @@ const CreatePost = () => {
 
 		try {
 			const res = await axios.post(
-				"http://localhost:3000/createpost",
+				"https://social-64gp.onrender.com/createpost",
 				formData,
 				{ withCredentials: true },
 

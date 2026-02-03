@@ -16,7 +16,7 @@ const Login = () => {
 	const onSubmit = async (data) => {
 		try {
 			const res = await axios.post(
-				"http://localhost:3000/auth/login",
+				"https://social-64gp.onrender.com/auth/login",
 				data,
 				{
 					withCredentials: true,

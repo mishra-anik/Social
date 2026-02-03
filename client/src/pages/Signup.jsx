@@ -16,7 +16,7 @@ const Signup = () => {
 	const onSubmit = async (data) => {
 
     try {
-		const res = await axios.post("http://localhost:3000/auth/signup", data);
+		const res = await axios.post("https://social-64gp.onrender.com/auth/signup", data);
 		console.log(res);
 		console.log(data);
     reset();

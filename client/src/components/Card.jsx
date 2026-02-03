@@ -3,7 +3,7 @@ import axios from "axios";
 
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000", {
+const socket = io("https://social-64gp.onrender.com", {
 	withCredentials: true,
 });
 
@@ -26,7 +26,7 @@ const PostCard = ({ post }) => {
 			console.log("sending:", message);
 
 			await axios.post(
-				`http://localhost:3000/comment/${id}`,
+				`https://social-64gp.onrender.com/comment/${id}`,
 				{ message },
 				{ withCredentials: true },
 			);
@@ -39,7 +39,7 @@ const PostCard = ({ post }) => {
 
 	const handleLike = async (id) => {
 		const res = await axios.post(
-			`http://localhost:3000/like/${id}`,
+			`https://social-64gp.onrender.com/${id}`,
 			{},
 
 			{ withCredentials: true },
