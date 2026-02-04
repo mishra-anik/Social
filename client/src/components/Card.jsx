@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 
 const socket = io("https://social-64gp.onrender.com", {
   withCredentials: true,
+   transports: ["websocket", "polling"],
 });
 
 const Card = ({ post }) => {
