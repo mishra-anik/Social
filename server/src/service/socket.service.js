@@ -10,16 +10,24 @@ const setUpSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
       origin: "https://social-gilt-seven.vercel.app",
-      methods: ["GET", "POST"],
       credentials: true,
+      methods: ["GET", "POST"]
     },
+    transports: ["websocket", "polling"],
   });
 
   console.log("Socket setup initialized");
 
-  io.use(async (socket, next) => {
+    io.use(async (socket, next) => {
     try {
-      const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+      // Render sometimes strips cookie header — fallback
+      const cookieHeader = socket.handshake.headers.cookie;
+
+      if (!cookieHeader) {
+        return next(new Error("No cookie sent"));
+      }
+
+      const cookies = cookie.parse(cookieHeader);
       const token = cookies.Authtoken;
 
       if (!token) return next(new Error("Unauthorized"));
@@ -33,9 +41,10 @@ const setUpSocket = (httpServer) => {
       socket.user = user;
       next();
     } catch (err) {
+      console.log("Socket auth error:", err.message);
       next(new Error("Unauthorized"));
     }
-  });
+      });
 
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
