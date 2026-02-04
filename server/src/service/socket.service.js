@@ -32,7 +32,7 @@ const setUpSocket = (httpServer) => {
 
       if (!token) return next(new Error("Unauthorized"));
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.Jwt_Secret);
       const userId = decoded.userId || decoded.id;
 
       const user = await User.findById(userId);
